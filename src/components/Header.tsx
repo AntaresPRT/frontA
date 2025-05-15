@@ -1,14 +1,15 @@
 // src/components/Header.tsx
-import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Container } from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
+import Notifications from "./Notifications";
 
 const Header = () => {
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem('token');
+  const isAuthenticated = !!localStorage.getItem("token");
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   return (
@@ -20,6 +21,8 @@ const Header = () => {
               Главная
             </Button>
           </Typography>
+
+          <Notifications />
 
           {isAuthenticated ? (
             <>

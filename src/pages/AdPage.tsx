@@ -1,5 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  Link,
+  useSearchParams,
+} from "react-router-dom";
 import {
   Box,
   Typography,
@@ -22,6 +27,11 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import Chat from "../components/Chat";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
 import apiClient from "../api/client";
 import { AdDto, UserDto, CommentDto } from "../types/types";
@@ -51,6 +61,10 @@ const AdPage = () => {
   const [commentError, setCommentError] = useState("");
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const shouldOpenChat = searchParams.get("openChat") === "true";
+  const [showChat, setShowChat] = useState(false);
+  const senderId = searchParams.get("senderId");
 
   useEffect(() => {
     const loadComments = async () => {
@@ -69,6 +83,37 @@ const AdPage = () => {
 
     if (ad) loadComments();
   }, [id, ad]);
+
+  useEffect(() => {
+    if (shouldOpenChat && ad) {
+      setShowChat(true);
+    }
+  }, [ad, shouldOpenChat]);
+
+  const handleCloseChat = () => {
+    setShowChat(false);
+    searchParams.delete("openChat");
+    setSearchParams(searchParams);
+  };
+
+  const [chatParticipant, setChatParticipant] = useState<UserDto | null>(null);
+
+  useEffect(() => {
+    const fetchParticipant = async () => {
+      if (senderId) {
+        try {
+          const response = await apiClient.get(
+            `/user-service/users/${senderId}`,
+          );
+          setChatParticipant(response.data);
+        } catch (err) {
+          console.error("Ошибка загрузки участника чата:", err);
+        }
+      }
+    };
+
+    fetchParticipant();
+  }, [senderId]);
 
   const handleReplySubmit = async (parentCommentId: number) => {
     if (!replyText.trim()) return;
@@ -384,6 +429,20 @@ const AdPage = () => {
         </Box>
       )}
 
+      {isAuthor ? null : (
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => {
+            setChatParticipant(ad.author);
+            setShowChat(true);
+          }}
+          sx={{ ml: 2 }}
+        >
+          Написать
+        </Button>
+      )}
+
       <Typography variant="h3" component="h1" gutterBottom>
         {ad.title}
       </Typography>
@@ -647,6 +706,32 @@ const AdPage = () => {
           <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
             <Link to="/login">Войдите</Link>, чтобы оставить комментарий
           </Typography>
+        )}
+
+        {chatParticipant && currentUser && (
+          <Dialog
+            open={showChat}
+            onClose={handleCloseChat}
+            fullWidth
+            maxWidth="md"
+          >
+            <DialogTitle>
+              Чат с {chatParticipant.username}
+              <IconButton
+                onClick={() => setShowChat(false)}
+                sx={{ position: "absolute", right: 8, top: 8 }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent>
+              <Chat
+                adId={ad.id}
+                recipient={chatParticipant}
+                currentUser={currentUser}
+              />
+            </DialogContent>
+          </Dialog>
         )}
 
         {comments.length > 0 ? (

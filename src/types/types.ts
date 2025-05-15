@@ -42,3 +42,15 @@ export interface CommentDto {
   replies: CommentDto[];
   parentCommentId?: number;
 }
+
+export interface ChatDto {
+  id: number;
+  adId: number;
+  participant: {
+    id: number;
+    username: string;
+  };
+  lastMessage: string;
+  unreadCount: number;
+  updatedAt: string;
+}

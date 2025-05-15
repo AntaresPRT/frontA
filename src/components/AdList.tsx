@@ -51,6 +51,7 @@ const AdList = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [moderationStatus, setModerationStatus] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,6 +63,7 @@ const AdList = () => {
               category: selectedCategory,
               minPrice,
               maxPrice,
+              moderationStatus,
             },
           }),
           apiClient.get("/ad-service/categories"),
@@ -78,7 +80,7 @@ const AdList = () => {
     };
 
     fetchData();
-  }, [searchQuery, selectedCategory, minPrice, maxPrice]);
+  }, [searchQuery, selectedCategory, minPrice, maxPrice, moderationStatus]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -99,6 +101,7 @@ const AdList = () => {
     setSelectedCategory("");
     setMinPrice("");
     setMaxPrice("");
+    setModerationStatus("");
   };
 
   if (loading) {
@@ -169,6 +172,20 @@ const AdList = () => {
               sx={{ width: 120 }}
             />
           </Box>
+
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>Статус</InputLabel>
+            <Select
+              value={moderationStatus}
+              onChange={(e) => setModerationStatus(e.target.value)}
+              label="Статус"
+            >
+              <MenuItem value="">Все</MenuItem>
+              <MenuItem value="APPROVED">Одобрено</MenuItem>
+              <MenuItem value="PENDING">На модерации</MenuItem>
+              <MenuItem value="REJECTED">Отклонено</MenuItem>
+            </Select>
+          </FormControl>
 
           <Button
             variant="outlined"
